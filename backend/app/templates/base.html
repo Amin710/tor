@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>{{ title }} | پنل Tornado VPN</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
+</head>
+<body>
+  {% if admin %}
+  <div class="mobile-header">
+    <a class="brand compact" href="/admin"><span class="brand-mark"><img src="/static/tornado-logo.png" alt=""></span><span>Tornado VPN</span></a>
+    <button class="menu-button" type="button" data-menu aria-label="باز کردن منو">☰</button>
+  </div>
+  <aside class="sidebar" data-sidebar>
+    <a class="brand" href="/admin"><span class="brand-mark"><img src="/static/tornado-logo.png" alt=""></span><span><b>Tornado VPN</b><small>مرکز مدیریت امن</small></span></a>
+    <nav>
+      <a class="{{ 'active' if path == '/admin' else '' }}" href="/admin"><span>▦</span>داشبورد</a>
+      <a class="{{ 'active' if path.startswith('/admin/servers') else '' }}" href="/admin/servers"><span>◉</span>سرورها</a>
+      <a class="{{ 'active' if path.startswith('/admin/ad-servers') else '' }}" href="/admin/ad-servers"><span>AD</span>سرورهای تبلیغات</a>
+      <a class="{{ 'active' if path.startswith('/admin/admob') else '' }}" href="/admin/admob"><span>▤</span>تنظیمات AdMob</a>
+      <a class="{{ 'active' if path.startswith('/admin/updates') else '' }}" href="/admin/updates"><span>↥</span>نسخه و آپدیت</a>
+      <a class="{{ 'active' if path.startswith('/admin/app-settings') else '' }}" href="/admin/app-settings"><span>⚙</span>تنظیمات اپ</a>
+      <a class="{{ 'active' if path.startswith('/admin/audit') else '' }}" href="/admin/audit"><span>≡</span>گزارش تغییرات</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="admin-chip"><span>{{ admin.username[:1]|upper }}</span><div><b>{{ admin.username }}</b><small>مدیر سیستم</small></div></div>
+      <form action="/admin/logout" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="text-button danger" type="submit">خروج امن</button>
+      </form>
+    </div>
+  </aside>
+  <main class="content">
+    <header class="page-header">
+      <div><p class="eyebrow">TORNADO CONTROL CENTER</p><h1>{{ title }}</h1></div>
+      <div class="live-pill"><i></i>سیستم آنلاین</div>
+    </header>
+    {% for flash in flashes %}<div class="flash {{ flash.level }}">{{ flash.message }}</div>{% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+  <div class="overlay" data-overlay></div>
+  {% else %}
+    {% block guest %}{% endblock %}
+  {% endif %}
+  <script src="{{ url_for('static', path='/app.js') }}" defer></script>
+</body>
+</html>

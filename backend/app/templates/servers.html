@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="action-row"><p class="muted">کانفیگ‌ها در دیتابیس رمز می‌شوند و در این لیست یا لاگ نمایش داده نمی‌شوند.</p><a class="primary" href="/admin/servers/new">＋ افزودن سرور</a></div>
+<section class="panel table-panel">
+  <div class="table-wrap">
+    <table><thead><tr><th>سرور</th><th>کشور</th><th>IP و پورت</th><th>پروتکل</th><th>اولویت</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+    <tbody>{% for server in servers %}<tr>
+      <td><div class="server-name"><span class="flag">{{ server.country_code|country_flag }}</span><div><b>{{ server.tag or server.public_id }}</b><small>{{ server.public_id }}</small></div></div></td>
+      <td>{{ server.country_name or 'نامشخص' }}<small class="block">{{ server.country_code }}</small></td>
+      <td><code>{{ server.resolved_ip or server.host }}</code><small class="block ltr">{{ server.host }}{% if server.port %}:{{ server.port }}{% endif %}</small></td>
+      <td><span class="badge protocol">{{ server.protocol|upper }}</span></td><td>{{ server.priority }}</td>
+      <td><span class="badge {{ 'success' if server.enabled else 'neutral' }}">{{ 'فعال' if server.enabled else 'خاموش' }}</span></td>
+      <td><div class="row-actions"><a href="/admin/servers/{{ server.id }}/edit" title="ویرایش">✎</a><form action="/admin/servers/{{ server.id }}/refresh" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button title="بررسی مجدد">↻</button></form><form action="/admin/servers/{{ server.id }}/toggle" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button title="روشن/خاموش">◐</button></form><form action="/admin/servers/{{ server.id }}/delete" method="post" data-confirm="این سرور حذف شود؟"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="danger" title="حذف">×</button></form></div></td>
+    </tr>{% else %}<tr><td colspan="7"><div class="empty-state"><b>هنوز سروری اضافه نشده</b><span>لینک VLESS، VMess، Trojan، Shadowsocks و موارد پشتیبانی‌شده را اضافه کن.</span><a class="primary" href="/admin/servers/new">افزودن اولین سرور</a></div></td></tr>{% endfor %}</tbody></table>
+  </div>
+</section>
+{% endblock %}

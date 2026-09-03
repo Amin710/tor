@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block guest %}
+<main class="login-shell">
+  <section class="login-visual">
+    <div class="visual-copy"><span class="brand-mark jumbo"><img src="/static/tornado-logo.png" alt="Tornado VPN"></span><h1>کنترل امن<br>Tornado VPN</h1><p>مدیریت سرورها، تبلیغات و انتشار اپ در یک پنل خصوصی.</p></div>
+    <div class="visual-grid"></div>
+  </section>
+  <section class="login-panel">
+    <form class="login-card" action="/admin/login" method="post">
+      <div class="brand mobile-brand"><span class="brand-mark"><img src="/static/tornado-logo.png" alt=""></span><b>Tornado VPN</b></div>
+      <p class="eyebrow">ورود مدیر</p>
+      <h2>خوش برگشتی</h2>
+      <p class="muted">برای ورود به مرکز مدیریت اطلاعات حساب را وارد کن.</p>
+      {% if error %}<div class="flash error">{{ error }}</div>{% endif %}
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label>نام کاربری<input name="username" value="{{ username or '' }}" autocomplete="username" required autofocus></label>
+      <label>رمز عبور<input name="password" type="password" autocomplete="current-password" required></label>
+      <button class="primary wide" type="submit">ورود امن به پنل <span>←</span></button>
+      <small class="login-note">نشست مدیریتی محدود، محافظت CSRF و کوکی امن</small>
+    </form>
+  </section>
+</main>
+{% endblock %}

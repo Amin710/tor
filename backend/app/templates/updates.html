@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<form method="post" action="/admin/updates" class="settings-stack">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <section class="panel settings-hero update-hero">
+    <div><p class="eyebrow">VERSION GATE</p><h2>دروازه نسخه اپ</h2><p>فقط نسخه‌های داخل بازه اجازه دریافت کانفیگ دارند؛ بقیه با کد 426 متوقف می‌شوند.</p></div>
+    <label class="switch-field large"><span>{{ 'فعال' if policy.enabled else 'خاموش' }}</span><input type="checkbox" name="enabled" {{ 'checked' if policy.enabled else '' }}><i></i></label>
+  </section>
+  <section class="two-columns settings-columns">
+    <article class="panel form-panel">
+      <div class="section-title"><span>۱</span><div><h2>بازه مجاز</h2><p>Version Code ملاک است، نه نام نمایشی نسخه.</p></div></div>
+      <div class="version-range-inputs"><label>حداقل Version Code<input name="min_version_code" type="number" min="1" value="{{ policy.min_version_code }}"></label><span>تا</span><label>حداکثر Version Code<input name="max_version_code" type="number" min="1" value="{{ policy.max_version_code }}"></label></div>
+      <label class="switch-field boxed"><span><b>آپدیت اجباری</b><small>نسخه خارج از بازه هیچ کانفیگی دریافت نکند</small></span><input type="checkbox" name="force_update" {{ 'checked' if policy.force_update else '' }}><i></i></label>
+      <div class="notice"><b>نسخه فعلی</b><span>برای اجازه‌دادن فقط به انتشار فعلی، حداقل و حداکثر را هر دو 1000008 بگذار.</span></div>
+    </article>
+    <article class="panel form-panel">
+      <div class="section-title"><span>۲</span><div><h2>پیام و لینک‌ها</h2><p>کلاینت Tornado این پیام و دو دکمه را نمایش می‌دهد.</p></div></div>
+      <label>عنوان پیام<input name="title" value="{{ policy.title }}" maxlength="140"></label>
+      <label>متن پیام<textarea name="message" rows="4">{{ policy.message }}</textarea></label>
+      <label>لینک مستقیم APK<input name="direct_url" dir="ltr" value="{{ policy.direct_url }}" placeholder="https://example.com/app.apk"></label>
+      <label>لینک Google Play<input name="play_store_url" dir="ltr" value="{{ policy.play_store_url }}" placeholder="https://play.google.com/store/apps/details?id=com.vpn.tornadovpn"></label>
+    </article>
+  </section>
+  <div class="sticky-save"><span>تغییرات بلافاصله روی درخواست‌های جدید اعمال می‌شود.</span><button class="primary" type="submit">ذخیره سیاست آپدیت</button></div>
+</form>
+{% endblock %}

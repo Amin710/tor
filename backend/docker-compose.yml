@@ -1,0 +1,53 @@
+name: tornado-vpn
+
+services:
+  backend:
+    build:
+      context: .
+      args:
+        APP_UID: ${APP_UID:-1000}
+        APP_GID: ${APP_GID:-1000}
+    restart: unless-stopped
+    init: true
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://tornado:${POSTGRES_PASSWORD}@postgres:5432/tornado
+      SIGNING_PRIVATE_KEY_PATH: /app/data/signing_private.pem
+      IMAGE_BOOTSTRAP_ENABLED: "true"
+      SECURE_BOOTSTRAP_ENABLED: "false"
+      LEGACY_BOOTSTRAP_ENABLED: "${LEGACY_BOOTSTRAP_ENABLED:-false}"
+    ports:
+      - "127.0.0.1:8010:8000"
+    volumes:
+      - tornado_data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tornado
+      POSTGRES_USER: tornado
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tornado -d tornado"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  tornado_data:
+  postgres_data:

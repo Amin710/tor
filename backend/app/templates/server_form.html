@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="back-row"><a href="/admin/servers">→ بازگشت به سرورها</a></div>
+<form class="panel form-panel" method="post" action="{{ '/admin/servers/' ~ server.id ~ '/edit' if server else '/admin/servers/new' }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  {% if error %}<div class="flash error">{{ error }}</div>{% endif %}
+  <div class="section-title"><span>۱</span><div><h2>کانفیگ اتصال</h2><p>پنل پروتکل، دامنه، IP، کشور و تگ را به‌صورت خودکار استخراج می‌کند.</p></div></div>
+  <label class="full">لینک کانفیگ
+    <textarea name="config" rows="4" dir="ltr" {{ '' if server else 'required' }} placeholder="vless://..."> </textarea>
+    {% if server %}<small>برای حفظ کانفیگ فعلی خالی بگذار؛ مقدار قبلی عمداً نمایش داده نمی‌شود.</small>{% endif %}
+  </label>
+  <div class="form-grid">
+    <label>شناسه عمومی<input name="public_id" dir="ltr" value="{{ server.public_id if server else (form.public_id if form else '') }}" placeholder="de-01" {{ 'required' if server else '' }}><small>در API کلاینت استفاده می‌شود.</small></label>
+    <label>تگ نمایشی<input name="tag" value="{{ server.tag if server else (form.tag if form else '') }}" placeholder="Germany Premium"></label>
+    <label>کشور (قابل اصلاح)<input name="country_name" value="{{ server.country_name if server else (form.country_name if form else '') }}" placeholder="Germany"></label>
+    <label>کد کشور<input name="country_code" dir="ltr" maxlength="8" value="{{ server.country_code if server else (form.country_code if form else '') }}" placeholder="DE"></label>
+    <label>اولویت<input name="priority" type="number" min="0" max="100000" value="{{ server.priority if server else (form.priority if form else 100) }}"><small>عدد کمتر زودتر به کلاینت فرستاده می‌شود.</small></label>
+    <label class="switch-field"><span>سرور فعال باشد</span><input type="checkbox" name="enabled" {{ 'checked' if not server or server.enabled else '' }}><i></i></label>
+  </div>
+  {% if server %}<div class="detected-info"><span><small>پروتکل</small><b>{{ server.protocol|upper }}</b></span><span><small>هاست</small><b class="ltr">{{ server.host }}</b></span><span><small>IP فعلی</small><b class="ltr">{{ server.resolved_ip or 'نامشخص' }}</b></span></div>{% endif %}
+  <div class="form-actions"><a class="secondary" href="/admin/servers">انصراف</a><button class="primary" type="submit">{{ 'ذخیره تغییرات' if server else 'افزودن و شناسایی سرور' }}</button></div>
+</form>
+{% endblock %}

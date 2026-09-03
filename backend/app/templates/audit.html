@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel table-panel">
+  <div class="panel-heading table-heading"><div><p class="eyebrow">AUDIT TRAIL</p><h2>۲۰۰ رویداد آخر</h2></div><span class="badge neutral">کانفیگ و Ad Unit ID ثبت نمی‌شود</span></div>
+  <div class="table-wrap"><table><thead><tr><th>زمان</th><th>مدیر</th><th>عملیات</th><th>هدف</th><th>جزئیات امن</th></tr></thead><tbody>{% for item in audits %}<tr><td class="ltr">{{ item.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td><td>{{ item.username }}</td><td><span class="badge protocol">{{ item.action }}</span></td><td>{{ item.target_type }} {{ item.target_id }}</td><td>{{ item.details or '—' }}</td></tr>{% else %}<tr><td colspan="5"><div class="empty-state"><span>گزارشی وجود ندارد.</span></div></td></tr>{% endfor %}</tbody></table></div>
+</section>
+{% endblock %}
+

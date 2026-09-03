@@ -1,0 +1,12 @@
+*.aar binary
+*.aar.part-* binary
+*.jar binary
+*.so binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ttf binary
+*.woff2 binary
+*.bat text eol=crlf
+*.sh text eol=lf
+gradlew text eol=lf

@@ -1,0 +1,16 @@
+.env
+.env.security-v2-backup-*
+.env.image-bootstrap-backup-*
+.env.before-*
+.env.backup-*
+.venv/
+__pycache__/
+.pytest_cache/
+.coverage
+*.egg-info/
+*.py[cod]
+*.db
+data/*
+!data/.gitkeep
+secrets/*
+!secrets/.gitkeep

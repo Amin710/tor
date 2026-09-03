@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<form method="post" action="/admin/admob" class="settings-stack">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <section class="panel settings-hero">
+    <div><p class="eyebrow">GLOBAL AD POLICY</p><h2>کنترل کلی تبلیغات</h2><p>با یک کلید همه جایگاه‌ها را خاموش کن؛ شناسه‌ها برای کلاینت نامعتبر ارسال نمی‌شوند.</p></div>
+    <label class="switch-field large"><span>{{ 'فعال' if ads.enabled else 'خاموش' }}</span><input type="checkbox" name="enabled" {{ 'checked' if ads.enabled else '' }}><i></i></label>
+  </section>
+  <section class="panel form-panel">
+    <div class="section-title"><span>۱</span><div><h2>تنظیمات عمومی</h2><p>مقادیر مشترک بارگذاری و رضایت کاربر.</p></div></div>
+    <div class="form-grid thirds">
+      <label>AdMob App ID<input name="admob_app_id" dir="ltr" value="{{ ads.admob_app_id }}" placeholder="ca-app-pub-...~..."><small>تغییر App ID در Manifest نیاز به بیلد تازه کلاینت دارد.</small></label>
+      <label>تایم‌اوت درخواست (ms)<input name="request_timeout_ms" type="number" min="1000" max="60000" value="{{ ads.request_timeout_ms }}"></label>
+      <label>تایم‌اوت بارگذاری (ms)<input name="load_timeout_ms" type="number" min="1000" max="60000" value="{{ ads.load_timeout_ms }}"></label>
+      <label>هر چند اتصال یک تبلیغ<input name="interstitial_every_connections" type="number" min="1" max="100" value="{{ ads.interstitial_every_connections }}"><small>در حالت واقعی حداقل ۲؛ مقدار ۱ فقط برای تست.</small></label>
+      <label>Banner Unit ID نسخه فعلی<input name="legacy_banner_unit_id" dir="ltr" value="{{ ads.legacy_banner_unit_id }}" placeholder="ca-app-pub-.../..."></label>
+      <div class="inline-switches"><label class="switch-field"><span>رضایت UMP الزامی</span><input type="checkbox" name="ump_required" {{ 'checked' if ads.ump_required else '' }}><i></i></label><label class="switch-field"><span>حالت تست</span><input type="checkbox" name="test_mode" {{ 'checked' if ads.test_mode else '' }}><i></i></label></div>
+    </div>
+  </section>
+  <section class="placements-grid">
+    {% set items = [('before_connect','قبل از اتصال','فقط در صورت آماده‌بودن تبلیغِ از قبل بارگذاری‌شده، پیش از شروع VPN نمایش داده می‌شود'),('after_connect','اتصال با تبلیغ','هسته VPN اجرا می‌شود اما وضعیت Connecting تا نمایش/خطا/عدم موجودی/تایم‌اوت تبلیغ حفظ می‌شود'),('app_open','باز شدن اپ','فرمت App Open در چرخه عادی برنامه'),('splash','اسپلش با سرور تبلیغ','پس از مجوز VPN، روی مسیر adServers و پیش از ورود به صفحه اصلی')] %}
+    {% for key, label, description in items %}{% set p = placements[key] %}
+    <article class="panel placement-card">
+      <div class="placement-head"><div><span class="placement-number">0{{ loop.index }}</span><h2>{{ label }}</h2><p>{{ description }}</p></div><label class="switch-field icon-only"><input type="checkbox" name="{{ key }}_enabled" {{ 'checked' if p.enabled else '' }}><i></i></label></div>
+      <label>Ad Unit ID<input name="{{ key }}_unit_id" dir="ltr" value="{{ p.unit_id }}" placeholder="ca-app-pub-.../..."></label>
+      <div class="mini-grid"><label>هر N بار<input name="{{ key }}_every_n_actions" type="number" min="1" max="100" value="{{ p.every_n_actions }}">{% if key in ['before_connect','after_connect'] %}<small>واقعی: حداقل ۲</small>{% endif %}</label><label>فاصله (ثانیه)<input name="{{ key }}_cooldown_seconds" type="number" min="0" max="86400" value="{{ p.cooldown_seconds }}"></label><label>تایم‌اوت (ms)<input name="{{ key }}_timeout_ms" type="number" min="1000" max="60000" value="{{ p.timeout_ms }}"></label><label>سقف روزانه<input name="{{ key }}_max_per_day" type="number" min="0" max="1000" value="{{ p.max_per_day }}"><small>۰ یعنی بدون سقف</small></label></div>
+    </article>{% endfor %}
+  </section>
+  <div class="sticky-save"><span>شناسه‌های تبلیغ در لاگ ثبت نمی‌شوند.</span><button class="primary" type="submit">ذخیره تنظیمات AdMob</button></div>
+</form>
+{% endblock %}

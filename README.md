@@ -35,6 +35,10 @@ cd client
 ./gradlew assembleDebug
 ```
 
+فایل بزرگ `libv2ray.aar` به چند قطعه باینری نگهداری می‌شود. Gradle پیش از
+Build آن را به‌طور خودکار بازسازی و SHA-256 آن را کنترل می‌کند؛ اقدام دستی
+لازم نیست.
+
 Build نسخه Release به چهار property با پیشوند `TORNADO_UPLOAD_` نیاز دارد. مقادیر و فایل keystore را فقط در محیط امن CI یا دستگاه سازنده نگه دارید و هرگز commit نکنید.
 
 ## نسخه مبنا

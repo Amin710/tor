@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<form method="post" action="/admin/app-settings" class="settings-stack">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <section class="panel form-panel">
+    <div class="section-title"><span>۱</span><div><h2>لینک‌های رسمی اپ</h2><p>فقط اطلاعاتی که کلاینت واقعاً مصرف می‌کند در پاسخ امن قرار می‌گیرد.</p></div></div>
+    <div class="form-grid">
+      <label>حریم خصوصی<input name="privacy_policy_url" dir="ltr" value="{{ app.privacy_policy_url }}" placeholder="https://example.com/privacy"></label>
+      <label>قوانین استفاده<input name="terms_url" dir="ltr" value="{{ app.terms_url }}" placeholder="https://example.com/terms"></label>
+      <label>پشتیبانی<input name="support_url" dir="ltr" value="{{ app.support_url }}" placeholder="https://t.me/..."></label>
+      <label>لینک اشتراک‌گذاری<input name="share_url" dir="ltr" value="{{ app.share_url }}" placeholder="https://play.google.com/..."></label>
+      <label>وب‌سایت<input name="website_url" dir="ltr" value="{{ app.website_url }}" placeholder="https://example.com"></label>
+      <label>عمر تصویر تنظیمات (ثانیه)<input name="payload_ttl_seconds" type="number" min="300" max="86400" value="{{ app.payload_ttl_seconds }}"><small>پیشنهاد: ۶۰۰ تا ۱۸۰۰ ثانیه؛ حداقل ۳۰۰ و سقف کلاینت ۲۴ ساعت است.</small></label>
+    </div>
+  </section>
+  <section class="two-columns settings-columns">
+    <article class="panel form-panel">
+      <div class="section-title"><span>۲</span><div><h2>حالت نگهداری</h2><p>برای اطلاع‌رسانی اختلال یا عملیات سرورها.</p></div></div>
+      <label class="switch-field boxed"><span><b>نمایش پیام نگهداری</b><small>پیام داخل payload امن ارسال شود</small></span><input type="checkbox" name="maintenance_enabled" {{ 'checked' if app.maintenance_enabled else '' }}><i></i></label>
+      <label>متن پیام<textarea name="maintenance_message" rows="5" placeholder="سرویس تا چند دقیقه دیگر بازمی‌گردد.">{{ app.maintenance_message }}</textarea></label>
+    </article>
+    <article class="panel form-panel security-card">
+      <div class="section-title"><span>۳</span><div><h2>رفتار امنیتی</h2><p>خطای احراز اصالت نباید به کانفیگ منجر شود.</p></div></div>
+      <label class="switch-field boxed"><span><b>Fail closed</b><small>در خطای Integrity از cache منقضی استفاده نشود</small></span><input type="checkbox" name="fail_closed_on_integrity_error" {{ 'checked' if app.fail_closed_on_integrity_error else '' }}><i></i></label>
+      <div class="revision-box"><small>نسخه تنظیمات</small><strong>#{{ app.config_revision }}</strong><span>با هر تغییر افزایش پیدا می‌کند.</span></div>
+    </article>
+  </section>
+  <div class="sticky-save"><span>کانفیگ‌های ذخیره‌شده مستقل و با AES-256-GCM رمز شده‌اند.</span><button class="primary" type="submit">ذخیره تنظیمات اپ</button></div>
+</form>
+{% endblock %}

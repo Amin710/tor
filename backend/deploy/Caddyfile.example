@@ -1,0 +1,9 @@
+bartarindl.ir {
+    encode zstd gzip
+    reverse_proxy 127.0.0.1:8010
+    header {
+        -Server
+        X-Content-Type-Options nosniff
+        Referrer-Policy same-origin
+    }
+}

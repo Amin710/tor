@@ -1,0 +1,157 @@
+package com.v2ray.ang.service
+
+import android.content.Context
+import android.os.ParcelFileDescriptor
+import com.v2ray.ang.AppConfig
+import com.v2ray.ang.contracts.Tun2SocksControl
+import com.v2ray.ang.handler.MmkvManager
+import com.v2ray.ang.handler.SettingsManager
+import com.v2ray.ang.util.LogUtil
+import java.io.File
+
+internal fun normalizeHevLogLevel(value: String?): String = when (value?.trim()?.lowercase()) {
+    "debug" -> "debug"
+    "info" -> "info"
+    "error" -> "error"
+    "warn", "warning" -> "warn"
+    else -> "warn"
+}
+
+/**
+ * Manages the tun2socks process that handles VPN traffic
+ */
+class TProxyService(
+    private val context: Context,
+    private val vpnInterface: ParcelFileDescriptor,
+    private val isRunningProvider: () -> Boolean,
+    private val restartCallback: () -> Unit
+) : Tun2SocksControl {
+    var lastStartFailure: String? = null
+        private set
+
+    companion object {
+        @Volatile
+        private var nativeLoadFailure: Throwable? = null
+
+        @JvmStatic
+        @Suppress("FunctionName")
+        private external fun TProxyStartService(configPath: String, fd: Int)
+
+        @JvmStatic
+        @Suppress("FunctionName")
+        private external fun TProxyStopService()
+
+        @JvmStatic
+        @Suppress("FunctionName")
+        private external fun TProxyGetStats(): LongArray?
+
+        init {
+            try {
+                System.loadLibrary("hev-socks5-tunnel")
+            } catch (failure: Throwable) {
+                nativeLoadFailure = failure
+                LogUtil.e(
+                    AppConfig.TAG,
+                    "HEV tunnel library is unavailable; VPN startup will be aborted",
+                    failure
+                )
+            }
+        }
+
+        fun isNativeAvailable(): Boolean = nativeLoadFailure == null
+
+        fun nativeLoadFailureDescription(): String? = nativeLoadFailure?.let { failure ->
+            val detail = failure.message?.takeUnless(String::isBlank)
+            if (detail == null) failure.javaClass.simpleName
+            else "${failure.javaClass.simpleName}: $detail"
+        }
+    }
+
+    /**
+     * Starts the tun2socks process with the appropriate parameters.
+     */
+    override fun startTun2Socks(): Boolean {
+        lastStartFailure = null
+        if (!isNativeAvailable()) {
+            lastStartFailure = nativeLoadFailureDescription()
+                ?.let { "HEV native library failed to load: $it" }
+                ?: "HEV native library failed to load"
+            LogUtil.w(AppConfig.TAG, lastStartFailure.orEmpty())
+            return false
+        }
+
+        return try {
+            val configContent = buildConfig()
+            val configFile = File(context.filesDir, "hev-socks5-tunnel.yaml").apply {
+                writeText(configContent)
+            }
+            TProxyStartService(configFile.absolutePath, vpnInterface.fd)
+            true
+        } catch (e: Throwable) {
+            val detail = e.message?.takeUnless(String::isBlank)
+            lastStartFailure = if (detail == null) {
+                "HEV tunnel start failed: ${e.javaClass.simpleName}"
+            } else {
+                "HEV tunnel start failed: ${e.javaClass.simpleName}: $detail"
+            }
+            LogUtil.e(AppConfig.TAG, "HevSocks5Tunnel exception: ${e.message}", e)
+            false
+        }
+    }
+
+    private fun buildConfig(): String {
+        val socksPort = SettingsManager.getSocksPort()
+        val socksUsername = SettingsManager.getSocksUsername()
+        val socksPassword = SettingsManager.getSocksPassword()
+        val vpnConfig = SettingsManager.getCurrentVpnInterfaceAddressConfig()
+        val escapedSocksUsername = socksUsername?.replace("'", "''")
+        val escapedSocksPassword = socksPassword?.replace("'", "''")
+        return buildString {
+            appendLine("tunnel:")
+            appendLine("  mtu: ${SettingsManager.getVpnMtu()}")
+            appendLine("  ipv4: ${vpnConfig.ipv4Client}")
+
+            if (MmkvManager.decodeSettingsBool(AppConfig.PREF_IPV6_ENABLED)) {
+                appendLine("  ipv6: '${vpnConfig.ipv6Client}'")
+            }
+
+            appendLine("socks5:")
+            appendLine("  port: ${socksPort}")
+            appendLine("  address: ${AppConfig.LOOPBACK}")
+            appendLine("  udp: 'udp'")
+            if (escapedSocksUsername != null && escapedSocksPassword != null) {
+                appendLine("  username: '${escapedSocksUsername}'")
+                appendLine("  password: '${escapedSocksPassword}'")
+            }
+
+            // Read-write timeout settings
+            val timeoutSetting = MmkvManager.decodeSettingsString(AppConfig.PREF_HEV_TUNNEL_RW_TIMEOUT) ?: AppConfig.HEVTUN_RW_TIMEOUT
+            val parts = timeoutSetting.split(",")
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+            val tcpTimeout = parts.getOrNull(0)?.toIntOrNull() ?: 300
+            val udpTimeout = parts.getOrNull(1)?.toIntOrNull() ?: 60
+
+            appendLine("misc:")
+            appendLine("  tcp-read-write-timeout: ${tcpTimeout * 1000}")
+            appendLine("  udp-read-write-timeout: ${udpTimeout * 1000}")
+            val logLevel = normalizeHevLogLevel(
+                MmkvManager.decodeSettingsString(AppConfig.PREF_HEV_TUNNEL_LOGLEVEL)
+            )
+            appendLine("  log-level: $logLevel")
+        }
+    }
+
+    /**
+     * Stops the tun2socks process
+     */
+    override fun stopTun2Socks() {
+        if (!isNativeAvailable()) return
+        try {
+            LogUtil.i(AppConfig.TAG, "TProxyStopService...")
+            TProxyStopService()
+        } catch (e: Throwable) {
+            LogUtil.e(AppConfig.TAG, "Failed to stop hev-socks5-tunnel", e)
+        }
+    }
+}
